@@ -1,0 +1,41 @@
+diff --git a/configure.ac b/configure.ac
+index 34f66d9..3dac4d5 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -50,9 +50,36 @@ PKG_PROG_PKG_CONFIG
+
+ ### Checks for libraries
+
++# Lua pkg-config hack for different naming conventions
++have_lua="yes"
++requirement_lua=""
++lua_libs=""
++PKG_CHECK_MODULES([LUA], [lua >= 5.1.0], requirement_lua="lua",
++   [PKG_CHECK_MODULES([LUA], [lua5.1 >= 5.1.0], requirement_lua="lua5.1",
++      [PKG_CHECK_MODULES([LUA], [lua-5.1 >= 5.1.0], requirement_lua="lua-5.1",
++         [PKG_CHECK_MODULES([LUA], [lua51 >= 5.1.0], requirement_lua="lua51",
++             [PKG_CHECK_MODULES([LUA], [luajit >= 2.0.4], requirement_lua="luajit",
++                [have_lua="no"])])])])])
++
++if test "x${have_lua}" = "xno" ; then
++   AC_MSG_CHECKING([whether lua_newstate() is in liblua])
++   AC_CHECK_LIB([lua], [lua_newstate],
++      [
++       have_lua="yes"
++       lua_libs="-llua"
++      ],
++      [have_lua="no"])
++   AC_MSG_RESULT([${have_lua}])
++fi
++AC_SUBST(lua_libs)
++
++if test "x${have_lua}" = "xno" ; then
++   AC_MSG_ERROR([Cannot find lua or luajit library. Be sure that you have installed it and set CFLAGS and LDFLAGS correctly])
++fi
++
+ efl_ver="1.7.10"
+
+-requirements_calaos_common="eina >= ${efl_ver} eet >= ${efl_ver} ecore >= ${efl_ver} ecore-file >= ${efl_ver} ecore-con >= ${efl_ver} sigc++-2.0 >= 2.4.1 jansson >= 2.5 libcurl >= 7.20.0 luajit"
++requirements_calaos_common="eina >= ${efl_ver} eet >= ${efl_ver} ecore >= ${efl_ver} ecore-file >= ${efl_ver} ecore-con >= ${efl_ver} sigc++-2.0 >= 2.4.1 jansson >= 2.5 libcurl >= 7.20.0"
+ PKG_CHECK_MODULES([CALAOS_COMMON], [${requirements_calaos_common}])
+ AC_SUBST([requirements_calaos_common])
